@@ -87,3 +87,7 @@ async def get_prices():
         raise err  # Re-raise specific HTTPExceptions
     except Exception as err:
         raise HTTPException(status_code=500, detail="Failed to fetch and process prices.") from err
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

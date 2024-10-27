@@ -74,7 +74,16 @@ class AgriGPT:
             prompt = f"""Generate a markdown representation for the following price data:\n\n{state_data}
             Strictly if the {state_data} is None, then add the most recent historical data for the markets in {self.district},{self.state} for {self.alternatives}.
             But make sure to add a disclaimer that it is historical data and may not be accurate. 
-            Strictly do not add any other disclaimer and only give the markdown representation.  
+            Strictly do not add any other disclaimer and only give the markdown representation.
+            Strictly don't add table in the markdown representation.
+            The format should strictly be:
+            <h2>The prices for the crops in {self.district}, {self.state} mentioned are as follows:</h2>
+            **Crop 1**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **Crop 2**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            ....
+            **Crop n**: Rs. xxxxx per <unit> (Date: <date>)
+            Dont include anything else in the markdown representation.
+            Dont add any markdown ```markdown ``` or anything else other than the format specified.
             """
 
             try:
@@ -91,7 +100,16 @@ class AgriGPT:
         else:
             prompt = f"""Generate a markdown representation for the following price data:\n\n{state_data}
             Strictly if the {state_data} is None, then add a disclaimer that real time prices are not updated yet. 
-            Strictly do not add any other disclaimer and only give the markdown representation.  
+            Strictly do not add any other disclaimer and only give the markdown representation.
+            Strictly don't add table in the markdown representation.
+            The format should strictly be:
+            <h2>The prices for the crop alternatives in {self.district}, {self.state} are as follows:</h2>
+            **Alternative 1**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **Alternative 2**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            ....
+            **Alternative n**: Rs. xxxxx per <unit> (Date: <date>)
+            Dont include anything else in the markdown representation.
+            Dont add any markdown ```markdown ``` or anything else other than the format specified.  
             """
             try:
                 completion = self.client.chat.completions.create(
