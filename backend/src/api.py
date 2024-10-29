@@ -3,6 +3,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile, Form
 from assistant_utils import encode_image
 from service import AgriGPT
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 agri_assistant = AgriGPT()
 # Initialize FastAPI app
@@ -37,8 +38,7 @@ async def get_crop_suggestion(
         raise HTTPException(status_code=400, detail="Failed to encode the image.") from err
 
     try:
-        suggestion = agri_assistant.crop_suggestor(days, location, crop, base64_image)
-        return {"suggestion": suggestion}
+        return StreamingResponse(agri_assistant.crop_suggestor(days, location, crop, base64_image), media_type="text/event-stream")
     except Exception as err:
         raise HTTPException(status_code=500, detail="An error occurred while generating crop suggestion.") from err
 
@@ -57,14 +57,11 @@ async def get_agriculture_suggestion(
 
     if option == "crop_alternative":
         try:
-            agri_assistant.filter_output(suggestion)
+            agri_assistant.filter_output()
         except Exception as err:
             raise HTTPException(status_code=500, detail="Failed to filter output for crop alternatives.") from err
 
-    return {
-        "suggestion": suggestion,
-        "explanation": f"Suggestion based on selected option '{option}'"
-    }
+    return StreamingResponse(suggestion, media_type="text/event-stream")
 
 @app.get("/get_prices")
 async def get_prices():
@@ -72,17 +69,14 @@ async def get_prices():
     # Fetch commodity prices from the API
     try:
         if agri_assistant.selection == "soil_preparation":
-            response = agri_assistant.fertilizer_recommender()
-            return {"markdown_table": response}
+            return StreamingResponse(agri_assistant.fertilizer_recommender(), media_type="text/event-stream")
 
         elif agri_assistant.selection == "crop_species_alternatives":
             filtered_data = agri_assistant.fetch_commodity_prices()
-            markdown = agri_assistant.get_markdown(filtered_data,'species')
-            return {"markdown_table": markdown}
+            return StreamingResponse(agri_assistant.get_markdown(filtered_data,'species'),media_type="text/event-stream")
         else:
             filtered_data = agri_assistant.fetch_commodity_alternative_prices()
-            markdown = agri_assistant.get_markdown(filtered_data,'alternatives')
-            return {"markdown_table": markdown}
+            return StreamingResponse( agri_assistant.get_markdown(filtered_data,'alternatives'),media_type="text/event-stream")
     except HTTPException as err:
         raise err  # Re-raise specific HTTPExceptions
     except Exception as err:

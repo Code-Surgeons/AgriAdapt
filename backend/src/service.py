@@ -8,6 +8,7 @@ from fastapi import HTTPException
 
 class AgriGPT:
     first_panel_output = None
+    second_panel_output = None
     selection = None
     state = None
     district = None
@@ -92,9 +93,13 @@ class AgriGPT:
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt}
-                    ]
+                    ],
+                    stream=True,
                 )
-                return completion.choices[0].message.content
+                for chunk in completion:
+                    current_content = chunk.choices[0].delta.content
+                    if current_content:                    
+                        yield current_content
             except Exception as e:
                 raise HTTPException(status_code=500, detail="Failed to generate markdown table from GPT-4.") from e
         else:
@@ -117,9 +122,13 @@ class AgriGPT:
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."},
                         {"role": "user", "content": prompt}
-                    ]
+                    ],
+                    stream=True,
                 )
-                return completion.choices[0].message.content
+                for chunk in completion:
+                    current_content = chunk.choices[0].delta.content
+                    if current_content:                    
+                        yield current_content
             except Exception as e:
                 raise HTTPException(status_code=500, detail="Failed to generate markdown table from GPT-4.") from e
              
@@ -150,10 +159,14 @@ class AgriGPT:
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                stream=True,
             )
 
-            return completion.choices[0].message.content
+            for chunk in completion:
+                current_content = chunk.choices[0].delta.content
+                if current_content:
+                    yield current_content
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to generate fertilizer recommendation.") from e
 
@@ -204,12 +217,16 @@ class AgriGPT:
                         ],
                     }
                 ],
+                stream=True,
             )
 
             # Extract the suggestion from the response
-            suggestion = response.choices[0].message.content
-            self.first_panel_output = suggestion
-            return suggestion
+            self.first_panel_output = ""
+            for chunk in response:
+                current_content = chunk.choices[0].delta.content
+                if current_content:
+                    self.first_panel_output += current_content
+                    yield current_content
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
     
@@ -274,20 +291,25 @@ class AgriGPT:
                 messages=[
                     {"role": "system", "content": "You are an agricultural expert providing tailored recommendations."},
                     {"role": "user", "content": prompt}
-                ]
+                ],
+                stream=True,
             )
 
             # Extracting the suggestion from the response
-            suggestion = completion.choices[0].message.content
-            return suggestion
+            self.second_panel_output = ""
+            for chunk in completion:
+                current_content = chunk.choices[0].delta.content
+                if current_content:
+                    self.second_panel_output += current_content
+                    yield current_content
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
     
-    def filter_output(self, suggestion):
+    def filter_output(self):
         """Helper function to convert the list string to python list object"""
         prompt = f"""
         Given the following text, please extract the names of the crops and return them as a Python list:
-        {suggestion}
+        {self.second_panel_output}
         """
 
         # Call the API
