@@ -83,7 +83,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
     formData.append("location", location.district);
 
     try {
-      const response = await fetch("http://localhost:8000/crop_suggestion", {
+      const response = await fetch("https://agriadapt.onrender.com/crop_suggestion", {
         method: "POST",
         body: formData,
       });

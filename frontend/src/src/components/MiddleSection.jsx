@@ -26,7 +26,7 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
       }
       formData.append("option", option);
 
-      const response = await fetch("http://localhost:8000/agriculture_suggestion", {
+      const response = await fetch("https://agriadapt.onrender.com/agriculture_suggestion", {
         method: "POST",
         body: formData,
       });
@@ -51,7 +51,7 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
 
     setLoadingPriceInfo(true);
     try {
-      const response = await fetch("http://localhost:8000/get_prices", {
+      const response = await fetch("https://agriadapt.onrender.com/get_prices", {
         method: "GET",
       });
 
