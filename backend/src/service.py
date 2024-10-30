@@ -70,7 +70,7 @@ class AgriGPT:
         except requests.exceptions.RequestException as e:
             raise HTTPException(status_code=500, detail="Failed to fetch alternative commodity prices.") from e
 
-    def get_markdown(self, state_data,data_type):
+    async def get_markdown(self, state_data,data_type):
         """Converts the data in markdown format"""
         if data_type=='alternatives':
             prompt = f"""Generate a markdown representation for the following price data:\n\n{state_data}
@@ -133,7 +133,7 @@ class AgriGPT:
             except Exception as e:
                 raise HTTPException(status_code=500, detail="Failed to generate markdown table from GPT-4.") from e
              
-    def fertilizer_recommender(self):
+    async def fertilizer_recommender(self):
         """Generates fertilizer recommendation based on the soil nutrient data of the particular state"""
         try:
             soil_composition = self.soil_data[(self.soil_data['State'] == self.state.upper())]
@@ -171,7 +171,7 @@ class AgriGPT:
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to generate fertilizer recommendation.") from e
 
-    def crop_suggestor(self, days, location, crop, base64_image):
+    async def crop_suggestor(self, days, location, crop, base64_image):
         """Suggests crop details based on soil analysis of the image provided"""
         try:
             response = retrieve_state_district(self.client, location)
@@ -283,7 +283,7 @@ class AgriGPT:
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
     
-    def alternative_suggestor(self, option):
+    async def alternative_suggestor(self, option):
         """Gives recommendations based on the input and the climate conditions of the location"""
         if option not in ["crop_alternative", "soil_preparation", "crop_species_alternatives"]:
             raise HTTPException(status_code=400, detail="Invalid option. Choose from 'crop alternative', 'soil preparation', or 'crop species alternatives'.")
