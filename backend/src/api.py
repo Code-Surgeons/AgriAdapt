@@ -16,6 +16,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
+@app.post("/check_image")
+async def get_image_result(
+    file: UploadFile = File(..., description="Upload an image of the soil"),
+):
+    """Endpoint for the soil analysis"""
+    # Read and encode the image in base64 format
+    try:
+        image_data = await file.read()
+    except Exception as err:
+        raise HTTPException(status_code=400, detail="Failed to read the uploaded file.") from err
+
+    try:
+        base64_image = encode_image(image_data)
+    except Exception as err:
+        raise HTTPException(status_code=400, detail="Failed to encode the image.") from err
+
+    try:
+        answer=agri_assistant.image_checker(base64_image)
+        return {'result':answer}
+    except Exception as err:
+        raise HTTPException(status_code=500, detail="An error occurred while analyzing the image.") from err
+
 # Function to fetch data from the government API
 @app.post("/crop_suggestion")
 async def get_crop_suggestion(

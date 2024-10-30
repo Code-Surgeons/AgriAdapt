@@ -13,6 +13,7 @@ class AgriGPT:
     district = None
     crop = None
     alternatives = []
+    is_soil=FalseS
 
     def __init__(self):
         load_dotenv()
@@ -163,53 +164,109 @@ class AgriGPT:
             response = retrieve_state_district(self.client, location)
             self.district, self.state = response.split(", ")
             self.crop = crop
-            prompt_text = f"""
-            You are given an image of soil and additional information about the location and desired crop.
+            if self.is_soil:
+                prompt_text = f"""
+                You are given an image of soil and additional information about the location and desired crop.
 
-            Information:
-            - District: {self.district}
-            - State: {self.state}
-            - Crop: {self.crop}
-            - Growing period in days: {days}
+                Information:
+                - District: {self.district}
+                - State: {self.state}
+                - Crop: {self.crop}
+                - Growing period in days: {days}
 
-            Please analyze the soil based on the provided image and consider the climate conditions typical for {self.district}, {self.state}.
-            Ensure recommendations are inclusive and consider cost-effective, accessible options. Assess:
-            1. A soil composition analysis based on the image, including possible nutrient content, texture, and any visible properties.
-            2. The suitability of growing {self.crop} in this soil, given the climate conditions for {self.district}, {self.state}.
-            3. The viability of growing {self.crop} over a period of {days} days in the specified location, taking into account typical weather patterns and soil compatibility.
+                Please analyze the soil based on the provided image and consider the climate conditions typical for {self.district}, {self.state}.
+                Ensure recommendations are inclusive and consider cost-effective, accessible options. Assess:
+                1. A soil composition analysis based on the image, including possible nutrient content, texture, and any visible properties.
+                2. The suitability of growing {self.crop} in this soil, given the climate conditions for {self.district}, {self.state}.
+                3. The viability of growing {self.crop} over a period of {days} days in the specified location, taking into account typical weather patterns and soil compatibility.
 
-            Respond in this format:
-            - **Soil Analysis**: <description of soil composition, nutrient content, etc.>
-            - **Crop Suitability**: <yes/no> with a brief explanation based on soil and climate.
-            - **Viability over {days} days**: <likely viable/not viable> with reasoning, including any climate considerations.
-            """
+                Respond in this format:
+                - **Soil Analysis**: <description of soil composition, nutrient content, etc.>
+                - **Crop Suitability**: <yes/no> with a brief explanation based on soil and climate.
+                - **Viability over {days} days**: <likely viable/not viable> with reasoning, including any climate considerations.
+                """
 
-            # Send the prompt and image to GPT-4o API
-            response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": prompt_text,
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpg;base64,{base64_image}"
+                # Send the prompt and image to GPT-4o API
+                response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": prompt_text,
                                 },
-                            },
-                        ],
-                    }
-                ],
-            )
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpg;base64,{base64_image}"
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    stream=True,
+                )
 
-            # Extract the suggestion from the response
-            suggestion = response.choices[0].message.content
-            self.first_panel_output = suggestion
-            return suggestion
+                # Extract the suggestion from the response
+                self.first_panel_output = ""
+                for chunk in response:
+                    current_content = chunk.choices[0].delta.content
+                    if current_content:
+                        self.first_panel_output += current_content
+                        yield current_content
+            else:
+                prompt_text = f"""
+                    You are given an image of a soil health card, which may be in a local language of India. Please extract the text from the image and translate it into English. Then, based on this translated soil analysis, analyze the suitability and viability of growing the specified crop in the specified region.
+
+                    Information:
+
+                    District: {self.district}
+                    State: {self.state}
+                    Crop: {self.crop}
+                    Growing period in days: {days}
+                    Please perform the following steps:
+
+                    Translate and interpret the soil analysis: Extract nutrient content, texture, and any other available soil properties mentioned in the card.
+                    Crop Suitability Analysis: Assess whether {self.crop} is suitable to grow in this soil based on both the soil properties from the card and the typical climate for {self.district}, {self.state}.
+                    Growth Viability over {days} days: Based on the soil analysis, determine if it is likely viable to grow {self.crop} for {days} days in this location, taking typical weather patterns and soil compatibility into account.
+                    Provide your response in this format:
+
+                    Soil Analysis: <Summarized soil analysis based on the extracted card information>
+                    Crop Suitability: <yes/no> with a brief explanation based on soil and climate.
+                    Viability over {days} days: <likely viable/not viable> with reasoning, including any climate considerations.
+                """
+                # Send the prompt and image to GPT-4o API
+                response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": prompt_text,
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpg;base64,{base64_image}"
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                    stream=True,
+                )
+
+                # Extract the suggestion from the response
+                self.first_panel_output = ""
+                for chunk in response:
+                    current_content = chunk.choices[0].delta.content
+                    if current_content:
+                        self.first_panel_output += current_content
+                        yield current_content
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
     
@@ -305,3 +362,41 @@ class AgriGPT:
             self.alternatives = [item.strip() for item in response.strip("[]").split(",")]
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
+    
+    def image_checker(self,base64_image):
+        prompt_text="""
+            Analyze the provided document image to determine if it meets the quality standards necessary for accurate text extraction. Check the following:
+            - Image clarity: Ensure the text is sharp, without blurring or pixelation.
+            - Alignment: Confirm the text is mostly horizontal and within the viewable area.
+            - Obstructions: Verify that no parts of the text are blocked or cut off.
+
+            If the image meets these standards, respond with 'Yes.' If it does not meet any of these standards, respond with 'No.' Strictly answer in 'Yes' or 'No' only.
+        """
+        try:
+            response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": prompt_text,
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpg;base64,{base64_image}"
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                )
+            answer=response.choices[0].message.content
+            if answer=="No":
+                self.is_soil=True
+            return answer
+        except Exception as e:
+            raise HTTPException(status_code=500, detail="Failed to get a response from GPT-4") from e
+        
