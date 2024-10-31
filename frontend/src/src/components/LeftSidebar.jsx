@@ -73,7 +73,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
         if (result.result === "Yes") {
           setIsImageValidated(true); // Enable fields if response is "yes"
         } else {
-          swal("Validation Failed", "Image validation failed. Please upload a valid image.", "error");
+          swal("Validation Failed", "Report not redable. Please upload image of soil.", "error");
           setIsImageValidated(false);
         }
       } else {
