@@ -19,7 +19,7 @@
 
 ## Demo Video
 Check out our demo video that showcases AgriAdapt’s core functionality and features, including an in-depth look at how GPT-4 powers our AI model:
-[Demo Video Link](https://youtu.be/7oc7-pMw5pw)
+[Demo Video Link](https://youtu.be/zQUOx5bLiKk)
 
 ---
 
