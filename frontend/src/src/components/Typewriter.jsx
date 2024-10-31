@@ -11,16 +11,13 @@ const Typewriter = ({ text, speed = 50 }) => {
     let index = 0;
     setDisplayedText(""); // Reset displayed text before typing new text
     const intervalId = setInterval(() => {
-      // Add text character by character
-      console.log(text[index]);
-      console.log("rrrrrrrrrrrr")
-      if (index !== text.length) {
-        setDisplayedText((prev) => prev + text[index]);
+      // Prevent undefined from being added if index exceeds text length
+      if (text[index] !== undefined) {
+        setDisplayedText((prev) => (prev + text[index]).replace("undefined", ""));
       }
-    //   console.log(displayedText);
       index += 1;
 
-      if (index === text.length) {
+      if (index >= text.length) {
         clearInterval(intervalId);
       }
     }, speed);
