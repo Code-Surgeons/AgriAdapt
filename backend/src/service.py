@@ -79,10 +79,10 @@ class AgriGPT:
             Strictly don't add table in the markdown representation.
             The format should strictly be:
             <h2>The prices for the crops in {self.district}, {self.state} mentioned are as follows:</h2>
-            **Crop 1**: Rs. xxxxx per <unit> (Date: <date>) <line break>
-            **Crop 2**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **<Crop 1>**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **<Crop 2>**: Rs. xxxxx per <unit> (Date: <date>) <line break>
             ....
-            **Crop n**: Rs. xxxxx per <unit> (Date: <date>)
+            **<Crop n>**: Rs. xxxxx per <unit> (Date: <date>)
             Dont include anything else in the markdown representation.
             Dont add any markdown ```markdown ``` or anything else other than the format specified.
             """
@@ -100,15 +100,16 @@ class AgriGPT:
                 raise HTTPException(status_code=500, detail="Failed to generate markdown table from GPT-4.") from e
         else:
             prompt = f"""Generate a markdown representation for the following price data:\n\n{state_data}
-            Strictly if the {state_data} is None, then add a disclaimer that real time prices are not updated yet. 
+            Strictly if the {state_data} is None, then add a disclaimer that real time prices are not updated yet and 
+            add the most recent historical data for species alternatives for the markets in {self.district},{self.state} for {self.crop}.
             Strictly do not add any other disclaimer and only give the markdown representation.
             Strictly don't add table in the markdown representation.
             The format should strictly be:
             <h2>The prices for the crop alternatives in {self.district}, {self.state} are as follows:</h2>
-            **Alternative 1**: Rs. xxxxx per <unit> (Date: <date>) <line break>
-            **Alternative 2**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **<Alternative 1>**: Rs. xxxxx per <unit> (Date: <date>) <line break>
+            **<Alternative 2>**: Rs. xxxxx per <unit> (Date: <date>) <line break>
             ....
-            **Alternative n**: Rs. xxxxx per <unit> (Date: <date>)
+            **<Alternative n>**: Rs. xxxxx per <unit> (Date: <date>)
             Dont include anything else in the markdown representation.
             Dont add any markdown ```markdown ``` or anything else other than the format specified.  
             """
