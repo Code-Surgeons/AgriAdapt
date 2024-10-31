@@ -63,7 +63,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/check_image", {
+      const response = await fetch("https://agriadapt.onrender.com/check_image", {
         method: "POST",
         body: formData,
       });
@@ -118,7 +118,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
     formData.append("location", location.district);
 
     try {
-      const response = await fetch("http://localhost:8000/crop_suggestion", {
+      const response = await fetch("https://agriadapt.onrender.com/crop_suggestion", {
         method: "POST",
         body: formData,
       });
@@ -150,9 +150,8 @@ const LeftSidebar = ({ setSoilConditions }) => {
       <div className="flex-1 mb-4" style={{ flexBasis: "30%" }}>
         <div
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-6 cursor-pointer flex items-center justify-center ${
-            isDragActive ? "border-blue-500" : "border-gray-300"
-          }`}
+          className={`border-2 border-dashed rounded-lg p-6 cursor-pointer flex items-center justify-center ${isDragActive ? "border-blue-500" : "border-gray-300"
+            }`}
           style={{
             height: "100%",
             backgroundColor: "#f0f4ff",
