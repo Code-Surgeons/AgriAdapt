@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import swal from "sweetalert";
 import ReactMarkdown from "react-markdown";
 import Typewriter from "./Typewriter";
 
@@ -11,7 +12,6 @@ const LeftSidebar = ({ setSoilConditions }) => {
   const [irrigationDays, setIrrigationDays] = useState("");
   const [selectedCrop, setSelectedCrop] = useState("");
   const [isImageValidated, setIsImageValidated] = useState(false);
-
 
   const logsContainerRef = useRef(null);
 
@@ -54,7 +54,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
       setImageFile(file);
       validateImage(file); // Validate the image on upload
     } else {
-      alert("Please upload a valid image file.");
+      swal("Invalid File", "Please upload a valid image file.", "error");
     }
   };
 
@@ -73,15 +73,16 @@ const LeftSidebar = ({ setSoilConditions }) => {
         if (result.result === "Yes") {
           setIsImageValidated(true); // Enable fields if response is "yes"
         } else {
-          alert("Image validation failed. Please upload a valid image.");
+          swal("Validation Failed", "Image validation failed. Please upload a valid image.", "error");
           setIsImageValidated(false);
         }
       } else {
-        alert("Image validation failed. Please try again.");
+        swal("Validation Error", "Image validation failed. Please try again.", "error");
         setIsImageValidated(false);
       }
     } catch (error) {
       console.error("Error validating image:", error);
+      swal("Validation Error", "Image validation failed. Please try again.", "error");
       setIsImageValidated(false);
     }
   };
@@ -94,7 +95,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
 
   const handleSubmit = async () => {
     if (!imageFile || !irrigationMonths || !irrigationDays || !selectedCrop) {
-      alert("Please fill in all fields and upload an image.");
+      swal("Missing Information", "Please fill in all fields and upload an image.", "warning");
       return;
     }
 
@@ -104,7 +105,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
     try {
       location = await fetchLocation();
     } catch (error) {
-      alert(`Error fetching location: ${error}`);
+      swal("Location Error", `Error fetching location: ${error}`, "error");
       setIsLoading(false);
       return;
     }
