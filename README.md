@@ -137,6 +137,8 @@ Department of Agriculture and Farmers Welfare Dataset](https://soilhealth.dac.go
 AgriAdapt includes a fully functional prototype that can be deployed locally or accessed via our deployed URL:
 [Deployed URL](https://agriadapt-1.onrender.com/)
 
+**Note: Since we are using free version of Render, the application might take abot an minute to process teh first api call. After uploading the image, please be patient and wait for sometime for it to complete the first request.**
+
 For a local setup, follow the instructions in the [Project Setup](#project-setup) section.
 
 ---
