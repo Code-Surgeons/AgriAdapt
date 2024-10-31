@@ -19,7 +19,7 @@
 
 ## Demo Video
 Check out our demo video that showcases AgriAdapt’s core functionality and features, including an in-depth look at how GPT-4 powers our AI model:
-[Demo Video Link](https://your-demo-video-link.com)
+[Demo Video Link](https://youtu.be/7oc7-pMw5pw)
 
 ---
 
@@ -135,7 +135,7 @@ Department of Agriculture and Farmers Welfare Dataset](https://soilhealth.dac.go
 
 ## Prototype/Working Solution
 AgriAdapt includes a fully functional prototype that can be deployed locally or accessed via our deployed URL:
-[Deployed URL](https://your-deployment-link.com)
+[Deployed URL](https://agriadapt-1.onrender.com/)
 
 For a local setup, follow the instructions in the [Project Setup](#project-setup) section.
 
