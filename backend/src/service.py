@@ -13,7 +13,7 @@ class AgriGPT:
     district = None
     crop = None
     alternatives = []
-    is_soil=FalseS
+    is_soil=False
 
     def __init__(self):
         load_dotenv()
@@ -394,6 +394,33 @@ class AgriGPT:
                     ],
                 )
             answer=response.choices[0].message.content
+
+            if self.is_soil:
+                soil_response = self.client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "Can you tell me if this is a image of soil? If the image is a image of soil, respond with 'Yes' If it is not a image of soil, respond with 'No' Strictly answer in 'Yes' or 'No' only.",
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": f"data:image/jpg;base64,{base64_image}"
+                                    },
+                                },
+                            ],
+                        }
+                    ],
+                )
+                soil_answer=soil_response.choices[0].message.content
+                if soil_answer=="Yes":
+                    return soil_answer
+                else:
+                    return "No"
             if answer=="No":
                 self.is_soil=True
             return answer

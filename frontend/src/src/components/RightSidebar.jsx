@@ -1,11 +1,16 @@
-import React from "react";
-import ReactMarkdown from "react-markdown";
-import Markdown from 'markdown-to-jsx'
-import remarkGfm from "remark-gfm"; // Import GFM for extended markdown
-import rehypeRaw from "rehype-raw"; // Import rehypeRaw for raw HTML
+import React, { useRef, useEffect} from "react";
+import Typewriter from "./Typewriter";
 
 const RightSidebar = ({ loadingPriceInfo, priceInfo }) => {
   const isDisabled = !priceInfo;
+
+  const contentContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (contentContainerRef.current) {
+      contentContainerRef.current.scrollTop = contentContainerRef.current.scrollHeight;
+    }
+  }, [priceInfo]);  
 
   return (
     <div
@@ -15,6 +20,7 @@ const RightSidebar = ({ loadingPriceInfo, priceInfo }) => {
     >
       {/* Markdown Display */}
       <div
+        ref={contentContainerRef}
         className={`flex-grow bg-white p-4 rounded-md border border-gray-300 ${
           isDisabled ? "opacity-50" : ""
         }`}
@@ -28,15 +34,9 @@ const RightSidebar = ({ loadingPriceInfo, priceInfo }) => {
         {loadingPriceInfo ? (
           <p className="text-gray-500 text-lg animate-pulse">Loading...</p>
         ) : (
-          <Markdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
-            className="prose" // Tailwind CSS class for markdown styling
-          >
-            {isDisabled
-              ? "No price information or recommendations available."
-              : priceInfo}
-          </Markdown>
+          isDisabled
+            ? "No price information or recommendations available."
+            : <Typewriter text={priceInfo} speed={5} />
         )}
       </div>
     </div>

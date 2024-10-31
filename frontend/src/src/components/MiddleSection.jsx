@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import Typewriter from "./Typewriter";
 
 const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) => {
   const [markdownContent, setMarkdownContent] = useState("No data yet.");
   const [loading, setLoading] = useState(false);
   const [buttonText, setButtonText] = useState("Get Prices");
+
+  const contentContainerRef = useRef(null);
 
   const isDisabled = !soilConditions;
 
@@ -26,7 +29,7 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
       }
       formData.append("option", option);
 
-      const response = await fetch("https://agriadapt.onrender.com/agriculture_suggestion", {
+      const response = await fetch("http://localhost:8000/agriculture_suggestion", {
         method: "POST",
         body: formData,
       });
@@ -51,7 +54,7 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
 
     setLoadingPriceInfo(true);
     try {
-      const response = await fetch("https://agriadapt.onrender.com/get_prices", {
+      const response = await fetch("http://localhost:8000/get_prices", {
         method: "GET",
       });
 
@@ -74,6 +77,12 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
     return buttonText === "Get Recommendation" ? "🌱" : "💰";
   };
 
+  useEffect(() => {
+    if (contentContainerRef.current) {
+      contentContainerRef.current.scrollTop = contentContainerRef.current.scrollHeight;
+    }
+  }, [markdownContent]);
+  
   return (
     <div
       className={`flex-1 h-[90vh] rounded-lg shadow-md p-4 flex flex-col ${isDisabled ? "bg-white bg-opacity-50 cursor-not-allowed" : "bg-[#474044]"}`}
@@ -105,11 +114,12 @@ const MiddleSection = ({ soilConditions, setPriceInfo, setLoadingPriceInfo }) =>
       <div
         className={`flex-grow bg-white p-4 rounded-md overflow-y-auto border border-gray-300 ${isDisabled ? "opacity-50" : ""}`}
         style={{ minHeight: "80%" }}
+        ref={contentContainerRef}
       >
         {loading ? (
           <p className="text-gray-500 animate-pulse">Loading...</p>
         ) : (
-          <ReactMarkdown>{markdownContent}</ReactMarkdown>
+          <Typewriter key={markdownContent} text={markdownContent} speed={5} />
         )}
       </div>
 

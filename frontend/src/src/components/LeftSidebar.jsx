@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import ReactMarkdown from "react-markdown";
+import Typewriter from "./Typewriter";
 
 const LeftSidebar = ({ setSoilConditions }) => {
   const [imageFile, setImageFile] = useState(null);
@@ -9,6 +10,10 @@ const LeftSidebar = ({ setSoilConditions }) => {
   const [irrigationMonths, setIrrigationMonths] = useState("");
   const [irrigationDays, setIrrigationDays] = useState("");
   const [selectedCrop, setSelectedCrop] = useState("");
+  const [isImageValidated, setIsImageValidated] = useState(false);
+
+
+  const logsContainerRef = useRef(null);
 
   const fetchLocation = () => {
     return new Promise((resolve, reject) => {
@@ -47,8 +52,37 @@ const LeftSidebar = ({ setSoilConditions }) => {
     const file = acceptedFiles[0];
     if (file && file.type.startsWith("image/")) {
       setImageFile(file);
+      validateImage(file); // Validate the image on upload
     } else {
       alert("Please upload a valid image file.");
+    }
+  };
+
+  const validateImage = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("http://localhost:8000/check_image", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.result === "Yes") {
+          setIsImageValidated(true); // Enable fields if response is "yes"
+        } else {
+          alert("Image validation failed. Please upload a valid image.");
+          setIsImageValidated(false);
+        }
+      } else {
+        alert("Image validation failed. Please try again.");
+        setIsImageValidated(false);
+      }
+    } catch (error) {
+      console.error("Error validating image:", error);
+      setIsImageValidated(false);
     }
   };
 
@@ -83,14 +117,13 @@ const LeftSidebar = ({ setSoilConditions }) => {
     formData.append("location", location.district);
 
     try {
-      const response = await fetch("https://agriadapt.onrender.com/crop_suggestion", {
+      const response = await fetch("http://localhost:8000/crop_suggestion", {
         method: "POST",
         body: formData,
       });
 
       if (response.ok) {
-        const data = await response.json(); // Parse the response as JSON
-        console.log(data)
+        const data = await response.json();
         const responseText = data.suggestion || "No suggestions available.";
         setLogs(responseText);
         setSoilConditions(responseText);
@@ -104,6 +137,12 @@ const LeftSidebar = ({ setSoilConditions }) => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (logsContainerRef.current) {
+      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    }
+  }, [logs]);
 
   return (
     <div className="flex-1 h-[90vh] bg-[#4F5165] rounded-lg shadow-md p-4 flex flex-col justify-between">
@@ -138,7 +177,6 @@ const LeftSidebar = ({ setSoilConditions }) => {
         </div>
       </div>
 
-      {/* Irrigation Tenure Title and Selector */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white mb-2">Irrigation Tenure</h2>
         <div className="flex space-x-4 mb-2">
@@ -150,6 +188,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
             className="w-1/2 p-2 rounded-md border border-gray-300 text-center"
             min="0"
             required
+            disabled={!isImageValidated}
           />
           <input
             type="number"
@@ -163,11 +202,11 @@ const LeftSidebar = ({ setSoilConditions }) => {
             min="0"
             className="w-1/2 p-2 rounded-md border border-gray-300 text-center"
             required
+            disabled={!isImageValidated}
           />
         </div>
       </div>
 
-      {/* Crop Selection */}
       <div className="mb-4">
         <label className="block mb-2 text-white font-semibold">Select Crop</label>
         <select
@@ -175,6 +214,7 @@ const LeftSidebar = ({ setSoilConditions }) => {
           onChange={(e) => setSelectedCrop(e.target.value)}
           className="w-full p-2 rounded-md border border-gray-300"
           required
+          disabled={!isImageValidated}
         >
           <option value="">Select a crop...</option>
           <option value="wheat">Wheat</option>
@@ -185,21 +225,20 @@ const LeftSidebar = ({ setSoilConditions }) => {
         </select>
       </div>
 
-      {/* Submit Button */}
       <button
         onClick={handleSubmit}
         className="mt-4 bg-green-600 text-white font-bold py-2 rounded-md space-x-2 font-bold"
+        disabled={!isImageValidated}
       >
         <span>🔍</span>
         <span className="font-bold">Analyze Conditions</span>
       </button>
 
-      {/* Logs Box with Loading Animation */}
-      <div className="mt-4 bg-white p-4 rounded-md shadow h-[30vh] overflow-auto">
+      <div className="mt-4 bg-white p-4 rounded-md shadow h-[30vh] overflow-auto" ref={logsContainerRef}>
         {isLoading ? (
           <p className="text-gray-500 animate-pulse">Loading...</p>
         ) : (
-          <ReactMarkdown className="text-gray-500">{logs}</ReactMarkdown>
+          <Typewriter text={logs} speed={5} />
         )}
       </div>
     </div>
